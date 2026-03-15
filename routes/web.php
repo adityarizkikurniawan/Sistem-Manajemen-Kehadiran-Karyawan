@@ -1,7 +1,6 @@
 <?php
-
+use App\Http\Controllers\PresensiController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Halaman Daftar Kehadiran
+Route::get('/presensi', [PresensiController::class, 'index']);
