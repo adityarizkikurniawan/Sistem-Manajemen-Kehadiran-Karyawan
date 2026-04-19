@@ -1,14 +1,17 @@
 <?php
+
 use App\Http\Controllers\PresensiController;
 use Illuminate\Support\Facades\Route;
 
-// Halaman Daftar Kehadiran
-Route::get('/presensi', [PresensiController::class, 'index']);
+Route::prefix('pages')->group(function () {
+    Route::view('/home', 'pages.home')->name('home');
+    Route::view('/login', 'pages.login')->name('login');
+    Route::view('/dashboard', 'pages.dashboard')->name('dashboard');
+    Route::view('/jadwal', 'pages.jadwal')->name('jadwal');
+    Route::view('/izin', 'pages.izin')->name('izin');
+    Route::view('/profile', 'pages.profile')->name('profile');
+});
 
-Route::view('/home', 'home');
-Route::view('/dashboard', 'dashboard');
-Route::view('/product', 'product');
-Route::get('/app', function () 
-{
-    return view('app');
+Route::get('/', function () {
+    return redirect()->route('home');
 });
