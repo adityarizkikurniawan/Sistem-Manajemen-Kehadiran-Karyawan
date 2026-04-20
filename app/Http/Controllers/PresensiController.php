@@ -2,19 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use Illuminate\Http\Request;           
+use Illuminate\Support\Facades\Auth; 
+use App\Models\Presensi;               
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PresensiController extends Controller
 {
-    public function index()
-    {
-        // Simulasi data kehadiran karyawan
-        $dataKehadiran = [
-            ['nama' => 'Samuel Ambar Pasaribu', 'jam_masuk' => '08:00', 'status' => 'Tepat Waktu'],
-            ['nama' => 'Muhammad Khairul Farhan', 'jam_masuk' => '08:15', 'status' => 'Terlambat'],
-            ['nama' => 'Aditya Rizki Kurniawan', 'jam_masuk' => '07:55', 'status' => 'Tepat Waktu'],
-        ];
+public function exportPdf(Request $request)
+{
+    $userId = Auth::id();
+    $bulan = $request->get('bulan', date('m')); 
+    $tahun = date('Y');
 
-        return view('presensi.index', compact('dataKehadiran'));
-    }
+    $dataPresensi = Presensi::where('user_id', $userId)
+        ->whereMonth('tanggal', $bulan)
+        ->whereYear('tanggal', $tahun)
+        ->orderBy('tanggal', 'asc')
+        ->get();
+        
+    $pdf = Pdf::loadView('exports.kehadiran_pdf', compact('dataPresensi', 'bulan', 'tahun'));
+    
+    return $pdf->download('Laporan_Kehadiran_Bulan_'.$bulan.'.pdf');
+}
 }

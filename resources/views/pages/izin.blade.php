@@ -16,6 +16,7 @@
                 <option>Cuti Duka</option>
                 <option>Cuti Hari Raya</option>
                 <option>Keperluan Mendesak</option>
+                <option>Lainnya</option>
             </select>
         </div>
         

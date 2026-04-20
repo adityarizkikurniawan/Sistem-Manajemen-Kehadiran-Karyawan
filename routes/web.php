@@ -10,6 +10,7 @@ Route::prefix('pages')->group(function () {
     Route::view('/jadwal', 'pages.jadwal')->name('jadwal');
     Route::view('/izin', 'pages.izin')->name('izin');
     Route::view('/profile', 'pages.profile')->name('profile');
+    Route::get('/profil/export-pdf', [PresensiController::class, 'exportPdf'])->name('profil.export_pdf');
 });
 
 Route::get('/', function () {
