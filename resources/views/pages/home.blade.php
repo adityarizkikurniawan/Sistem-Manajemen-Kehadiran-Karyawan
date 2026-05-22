@@ -1,40 +1,37 @@
 @extends('layouts.app')
 
-@section('title', 'Beranda - Sistem Presensi')
-
 @section('content')
-<div class="max-w-4xl mx-auto">
-    <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 border border-gray-100 text-center">
-        <h1 class="text-3xl font-bold text-gray-800 mb-4">Selamat Datang di Sistem Presensi</h1>
-        <p class="text-gray-600 mb-6">Kelola kehadiran Anda dengan mudah, cepat, dan transparan.</p>
+<div class="min-h-[70vh] flex flex-col items-center justify-center">
+    
+    <div class="text-center mb-10">
+        <h1 class="text-6xl font-black text-blue-600 tracking-tighter">14.26.02</h1>
+        <p class="text-lg text-gray-500 font-medium mt-2">Sunday, 26 April 2026</p>
+    </div>
+
+    <div class="w-full max-w-2xl bg-white p-10 rounded-3xl shadow-2xl shadow-blue-100 border border-gray-100 text-center">
+        <div class="inline-block p-3 bg-blue-50 rounded-2xl mb-6">
+            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-10V4m0 10V4m-4 11h.01M11 11h.01M11 7h.01M14 7h.01M14 11h.01M14 15h.01M11 15h.01"></path>
+            </svg>
+        </div>
         
-        <div class="flex justify-center gap-4">
-            <a href="{{ route('login') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition">
-                Masuk Sekarang
+        <h2 class="text-3xl font-extrabold text-gray-900 mb-4">Portal Absensi Internal</h2>
+        <p class="text-gray-500 leading-relaxed mb-8 px-10">
+            Selamat datang di sistem manajemen kehadiran PT. Polibatam. 
+            Silakan gunakan akun Anda untuk melakukan presensi masuk/pulang hari ini.
+        </p>
+
+        @guest
+            <a href="{{ route('login') }}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-12 rounded-2xl transition duration-300 transform hover:scale-105 shadow-lg shadow-blue-200">
+                Masuk ke Akun
             </a>
-            <a href="#fitur" class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-2 px-6 rounded-lg transition">
-                Pelajari Fitur
+        @else
+            <a href="{{ route('dashboard') }}" class="inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-12 rounded-2xl transition duration-300">
+                Lanjut ke Dashboard
             </a>
-        </div>
+        @endguest
     </div>
 
-    <div id="fitur" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <div class="text-blue-500 mb-3">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            </div>
-            <h3 class="font-bold text-gray-800">Presensi Real-time</h3>
-            <p class="text-sm text-gray-500 mt-2">Catat kehadiran Anda secara instan kapan saja.</p>
-        </div>
 
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <div class="text-green-500 mb-3">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-            </div>
-            <h3 class="font-bold text-gray-800">Rekap Laporan</h3>
-            <p class="text-sm text-gray-500 mt-2">Lihat riwayat kehadiran bulanan dengan satu klik.</p>
-        </div>
-
-    </div>
 </div>
 @endsection

@@ -8,5 +8,20 @@ use Illuminate\Database\Eloquent\Model;
 class Presensi extends Model
 {
     use HasFactory;
+
     protected $table = 'presensi'; 
+
+    protected $fillable = [
+        'user_id',
+        'tanggal',    
+        'jam_masuk',
+        'jam_pulang', 
+        'location',
+        'keterangan' 
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

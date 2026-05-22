@@ -43,6 +43,14 @@
                         </div>
                     </div>
                 </div>
+                @if(Auth::user()->role == 'admin')
+                <div>
+                    <button type="submit" 
+                        class="w-full block text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition duration-200 p-2">
+                        Edit Jadwal
+                    </button>
+                </div>
+                @endif
             </div>
         </div>
 
@@ -75,6 +83,14 @@
                         </div>
                     </div>
                 </div>
+                @if(Auth::user()->role == 'admin')
+                <div>
+                    <button type="submit" 
+                        class="w-full block text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition duration-200 p-2">
+                        Edit Jadwal
+                    </button>
+                </div>
+                @endif
             </div>
 
         </div>
@@ -112,6 +128,14 @@
                         </div>
                     </div>
                 </div>
+                @if(Auth::user()->role == 'admin')
+                <div>
+                    <button type="submit" 
+                        class="w-full block text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition duration-200 p-2">
+                        Edit Jadwal
+                    </button>
+                </div>
+                @endif
             </div>
 
         </div>
