@@ -10,13 +10,12 @@ use Carbon\Carbon;
 
 class PresensiController extends Controller
 {
-    // FUNGSI UNTUK CHECK-IN (Masuk)
+    // (Masuk)
     public function store(Request $request)
     {
         $userId = auth()->id();
         $today = date('Y-m-d');
 
-        // 2. Cek apakah sudah absen hari ini (Biar ga double)
         $sudahAbsen = \App\Models\Presensi::where('user_id', $userId)
                                             ->where('tanggal', $today)
                                             ->exists();
@@ -47,22 +46,31 @@ class PresensiController extends Controller
         return redirect()->back()->with('success', 'Berhasil Check-out! Hati-hati di jalan.');
     }
 
-    // EXPORT PDF
+    // EXPORT PDF (Bulan Ini)
     public function exportPdf(Request $request)
     {
-        $userId = Auth::id();
-        $bulan = $request->get('bulan', date('m')); 
-        $tahun = date('Y');
+        $user = Auth::user();
 
-        // Catatan: Pastikan nama kolom 'date' atau 'tanggal' konsisten dengan DB
-        $dataPresensi = Presensi::where('user_id', $userId)
-            ->whereMonth('date', $bulan)
-            ->whereYear('date', $tahun)
-            ->orderBy('date', 'asc')
-            ->get();
+        $bulanSekarang = \Carbon\Carbon::now()->month;
+        $tahunSekarang = \Carbon\Carbon::now()->year;
+
+        if ($user->role == 'admin') {
+
+            $dataPresensi = Presensi::whereMonth('tanggal', $bulanSekarang)
+                                ->whereYear('tanggal', $tahunSekarang)
+                                ->orderBy('tanggal', 'asc')
+                                ->get();
+        } else {
+
+            $dataPresensi = Presensi::where('user_id', $user->id)
+                                ->whereMonth('tanggal', $bulanSekarang)
+                                ->whereYear('tanggal', $tahunSekarang)
+                                ->orderBy('tanggal', 'asc')
+                                ->get();
+        }
             
-        $pdf = Pdf::loadView('exports.kehadiran_pdf', compact('dataPresensi', 'bulan', 'tahun'));
+        $pdf = Pdf::loadView('exports.kehadiran_bulan_ini_pdf', compact('dataPresensi', 'bulanSekarang', 'tahunSekarang'));
         
-        return $pdf->download('Laporan_Kehadiran_Bulan_'.$bulan.'.pdf');
+        return $pdf->stream('Laporan_Presensi_Bulan_'.$bulanSekarang.'_'.$tahunSekarang.'.pdf');
     }
 }

@@ -13,7 +13,7 @@ class IzinController extends Controller
         $user = Auth::user();
         
         if ($user->role == 'admin') {
-            // Admin melihat SEMUA pengajuan izin
+            // Admin melihat semua pengajuan izin
             $izins = Permission::with('user')->latest()->get();
         } else {
             // Karyawan cuma melihat izin MEREKA SENDIRI
@@ -27,27 +27,31 @@ class IzinController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'tanggal' => 'required|date',
+            'tanggal_mulai' => 'required|date',
+            'tanggal_selesai' => 'required|date',
             'kategori' => 'required',
             'alasan' => 'required',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048', // Max 2MB
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-        $path = null;
+        $imagePath = null;
+
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('bukti_izin', 'public');
+            $imagePath = $request->file('image')->store('perizinan', 'public');
         }
 
+        // Simpan ke database
         Permission::create([
-            'user_id' => \Auth::id(),
-            'tanggal' => $request->tanggal,
+            'user_id' => auth()->id(),
+            'tanggal_mulai' => $request->tanggal_mulai,
+            'tanggal_selesai' => $request->tanggal_selesai,
             'kategori' => $request->kategori,
             'alasan' => $request->alasan,
-            'image' => $path,
             'status' => 'pending',
+            'image' => $imagePath, // Tambahkan baris ini agar file tersimpan!
         ]);
 
-        return back()->with('success', 'Izin dan bukti berhasil dikirim!');
+        return redirect()->back()->with('success', 'Berhasil!');
     }
 
     public function updateStatus(Request $request, $id)

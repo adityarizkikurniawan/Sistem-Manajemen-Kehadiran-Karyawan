@@ -25,13 +25,33 @@ class ProfilController extends Controller
         return view('pages.profil.index', compact('user', 'presensi'));
     }
 
-    public function exportPdf()
+    public function export_pdf(Request $request)
     {
-        $user = auth()->user();
-        $presensi = Presensi::where('user_id', $user->id)->latest()->get();
+        $user = Auth::user();
+        $bulanSekarang = \Carbon\Carbon::now()->month;
+        $tahunSekarang = \Carbon\Carbon::now()->year;
 
-        $pdf = Pdf::loadView('exports.kehadiran_pdf', compact('user', 'presensi'));
+        if ($user->role == 'admin') {
+            $query = Presensi::with('user')
+                ->whereMonth('tanggal', $bulanSekarang)
+                ->whereYear('tanggal', $tahunSekarang);
 
-        return $pdf->download('Rekap_Kehadiran_' . $user->name . '.pdf');
+            if ($request->has('filter_divisi') && $request->filter_divisi != '') {
+                $query->whereHas('user', function($q) use ($request) {
+                    $q->where('divisi', $request->filter_divisi);
+                });
+            }
+            $dataPresensi = $query->latest('tanggal')->get();
+        } else {
+            $dataPresensi = Presensi::where('user_id', $user->id)
+                ->whereMonth('tanggal', $bulanSekarang)
+                ->whereYear('tanggal', $tahunSekarang)
+                ->latest('tanggal')
+                ->get();
+        }
+
+        // Kirim data ke view PDF di atas
+        $pdf = \Pdf::loadView('exports.kehadiran_bulan_ini_pdf', compact('dataPresensi', 'bulanSekarang', 'tahunSekarang'));
+        return $pdf->stream('Laporan_Presensi.pdf');
     }
 }

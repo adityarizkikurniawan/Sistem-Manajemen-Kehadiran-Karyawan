@@ -8,11 +8,12 @@ class Permission extends Model
 {
     protected $fillable = [
         'user_id',
-        'tanggal',
+        'tanggal_mulai',
+        'tanggal_selesai',
         'kategori',
         'alasan',
         'image',
-        'status',
+        'status'
     ];
 
     public function user()
