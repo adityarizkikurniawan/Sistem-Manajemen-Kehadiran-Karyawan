@@ -22,7 +22,9 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-        'divisi',
+        'divisi_id',
+        'jenis_kelamin',  
+        'status_pernikahan',
     ];
 
     /**
@@ -46,5 +48,10 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function divisi()
+    {
+        return $this->belongsTo(Divisi::class, 'divisi_id');
     }
 }

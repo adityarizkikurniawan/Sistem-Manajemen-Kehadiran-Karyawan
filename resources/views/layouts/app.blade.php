@@ -27,8 +27,8 @@
                    DASHBOARD
                 </a>
                 <a href="{{ route('jadwal') }}" 
-                   class="text-xs font-bold tracking-widest transition {{ request()->routeIs('jadwal') ? 'text-blue-400' : 'text-slate-400 hover:text-white' }}">
-                   JADWAL
+                    class="text-xs font-bold tracking-widest transition {{ request()->routeIs('jadwal') ? 'text-blue-400' : 'text-slate-400' }}">
+                    JADWAL
                 </a>
                 <a href="{{ route('izin') }}" 
                    class="text-xs font-bold tracking-widest transition {{ request()->routeIs('izin') ? 'text-blue-400' : 'text-slate-400 hover:text-white' }}">

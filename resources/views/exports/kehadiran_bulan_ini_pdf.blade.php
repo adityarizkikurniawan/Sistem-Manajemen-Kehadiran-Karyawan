@@ -39,7 +39,7 @@
                 {{-- REKAP KHUSUS ADMIN: TAMPILKAN DATA KARYAWAN & DIVISI --}}
                 @if(Auth::user()->role == 'admin')
                     <td style="font-weight: bold;">{{ $presensi->user->name ?? 'User Terhapus' }}</td>
-                    <td>{{ strtoupper($presensi->user->divisi ?? 'Belum Set') }}</td>
+                    <td>{{ strtoupper($presensi->user->divisi?->nama_divisi ?? 'Belum Set') }}</td>
                 @endif
                 <td>{{ \Carbon\Carbon::parse($presensi->tanggal)->translatedFormat('d F Y') }}</td>
                 <td>{{ $presensi->jam_masuk ?? '--:--' }}</td>

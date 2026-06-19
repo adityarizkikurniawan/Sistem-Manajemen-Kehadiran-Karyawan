@@ -1,10 +1,13 @@
 <?php
 
+use App\Http\Controllers\DivisiController;
 use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\IzinController;
 use App\Http\Controllers\KaryawanController; 
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\HolidayController;
+use App\Http\Controllers\JadwalController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RekapController;
 use App\Http\Controllers\ProfilController;
@@ -23,8 +26,8 @@ Route::prefix('pages')->group(function () {
     Route::middleware(['auth'])->group(function () {
         
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        Route::view('/jadwal', 'pages.jadwal')->name('jadwal');
         Route::view('/profile', 'pages.profile')->name('profile');
+        Route::get('/jadwal', [JadwalController::class, 'index'])->name('jadwal');
 
         Route::get('/profil', [ProfilController::class, 'index'])->name('profil.index');
         Route::get('/admin/profil-karyawan/{id}', [ProfilController::class, 'show'])->name('admin.user.profile');
@@ -53,6 +56,17 @@ Route::prefix('pages')->group(function () {
 
         // Rekap
         Route::get('/rekap', [RekapController::class, 'index'])->name('rekap.index');
+
+        Route::get('/jadwal/api-holidays', [HolidayController::class, 'getHolidays'])->name('jadwal.api');
+        Route::middleware(['auth', 'role:admin'])->group(function () {
+            Route::post('/jadwal/store', [HolidayController::class, 'store'])->name('jadwal.store');
+            Route::delete('/jadwal/{id}', [HolidayController::class, 'destroy'])->name('jadwal.destroy');
+            Route::put('/jadwal/update/{id}', [JadwalController::class, 'update'])->name('jadwal.update');
+        });
+        
+        Route::middleware(['auth', 'role:admin'])->group(function () {
+            Route::put('/admin/divisi/{id}', [DivisiController::class, 'update'])->name('divisi.update');
+        });
     });
 });
 

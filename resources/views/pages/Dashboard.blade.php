@@ -244,11 +244,11 @@
                                 {{ $presensi->user->name ?? 'User Terhapus' }}
                             </p>
                         </td>
-                        <td class="px-8 py-6">
-                            <span class="inline-flex items-center px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black rounded-md uppercase tracking-wider">
-                                {{ $presensi->user->divisi ?? 'Belum Set' }}
-                            </span>
-                        </td>
+                            <td class="px-8 py-6">
+                                <span class="inline-flex items-center px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black rounded-md uppercase tracking-wider">
+                                    {{ strtoupper($presensi->user->divisi?->nama_divisi ?? 'Belum Set') }}
+                                </span>
+                            </td>
                         @endif
 
                         <td class="px-8 py-6">

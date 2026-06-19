@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Presensi; 
 use App\Models\Permission;
 use App\Models\User;
+use App\Models\Divisi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -14,7 +15,7 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        $today = Carbon::today();
+        $today = Carbon::today();   
         $bulanSekarang = Carbon::now()->month;
         $tahunSekarang = Carbon::now()->year;
 
@@ -24,15 +25,7 @@ class DashboardController extends Controller
         if ($user->role == 'admin') {
             // --- DASHBOARD ADMIN ---
 
-            $daftar_divisi = [
-                'IT / Engineering',
-                'Core Business',
-                'Production',
-                'Sales',
-                'Marketing',
-                'HRD',
-                'Finance'
-            ];
+            $daftar_divisi = Divisi::all();
 
             // Ambil data presensi bulan ini
             $queryPresensi = Presensi::with('user')

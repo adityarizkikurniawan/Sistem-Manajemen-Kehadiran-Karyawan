@@ -35,21 +35,45 @@
                     class="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500">
             </div>
 
+            {{-- Input Jenis Kelamin --}}
+            <div>
+                <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">Jenis
+                    Kelamin</label>
+                <select name="jenis_kelamin" required
+                    class="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500">
+                    <option value="">-- Pilih Jenis Kelamin --</option>
+                    <option value="Laki-laki">Laki-laki</option>
+                    <option value="Perempuan">Perempuan</option>
+                </select>
+            </div>
+
+            {{-- Input Status Pernikahan --}}
+            <div>
+                <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">Status
+                    Pernikahan</label>
+                <select name="status_pernikahan" required
+                    class="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500">
+                    <option value="">-- Pilih Status --</option>
+                    <option value="Menikah">Menikah</option>
+                    <option value="Belum Menikah">Belum Menikah</option>
+                </select>
+            </div>
+
             {{-- Input Divisi (Dropdown Terintegrasi) --}}
             <div>
                 <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">Divisi
                     Kerja</label>
-                <select name="divisi" required
+                <select name="divisi_id" required
                     class="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500">
+
                     <option value="">-- Pilih Divisi --</option>
 
-                    <option value="IT / Engineering">IT / ENGINEERING</option>
-                    <option value="Core Business">CORE BUSINESS</option>
-                    <option value="Production">PRODUCTION</option>
-                    <option value="Sales">SALES</option>
-                    <option value="Marketing">MARKETING</option>
-                    <option value="HRD">HRD</option>
-                    <option value="Finance">FINANCE</option>
+                    @foreach($divisis as $divisi)
+                        <option value="{{ $divisi->id }}">
+                            {{ strtoupper($divisi->nama_divisi) }}
+                        </option>
+                    @endforeach
+
                 </select>
             </div>
 

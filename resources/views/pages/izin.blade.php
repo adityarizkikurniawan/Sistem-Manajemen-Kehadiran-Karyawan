@@ -85,6 +85,22 @@
                         <span class="w-1.5 h-6 bg-blue-600 rounded-full"></span>
                         Ajukan Izin Baru
                     </h3>
+                    @if ($errors->any())
+                    <div class="bg-red-500/20 border border-red-500/50 p-4 rounded-xl mb-4 text-[10px] text-red-200">
+                        <ul>
+                            @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                    @endif
+
+                    @if (session('success'))
+                    <div
+                        class="bg-green-500/20 border border-green-500/50 p-4 rounded-xl mb-4 text-[10px] text-green-200">
+                        {{ session('success') }}
+                    </div>
+                    @endif
 
                     <form action="{{ route('izin.store') }}" method="POST" enctype="multipart/form-data"
                         class="space-y-4">
@@ -211,7 +227,7 @@
                                                 d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
                                             </path>
                                         </svg>
-                                        {{ strtoupper($izin->user->divisi ?? 'Staff') }}
+                                        {{ strtoupper($izin->user->divisi?->nama_divisi ?? 'BELUM SET') }}
                                     </span>
                                 </div>
                             </div>
@@ -275,7 +291,8 @@
                         </td>
 
                         <td class="p-5 text-center">
-                            <span class="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider shadow-sm border
+                            <span
+                                class="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider shadow-sm border
                                 {{ $izin->status == 'pending' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : '' }}
                                 {{ $izin->status == 'disetujui' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : '' }}
                                 {{ $izin->status == 'ditolak' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : '' }}">

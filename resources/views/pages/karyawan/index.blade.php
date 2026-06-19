@@ -26,17 +26,14 @@
                     <option value="IT / Engineering" {{ request('filter_divisi') == 'IT / Engineering' ? 'selected' : '' }}>IT / ENGINEERING</option>
                     <option value="Core Business" {{ request('filter_divisi') == 'Core Business' ? 'selected' : '' }}>CORE BUSINESS</option>
                     <option value="Production" {{ request('filter_divisi') == 'Production' ? 'selected' : '' }}>PRODUCTION</option>
-                    <option value="Sales" {{ request('filter_divisi') == 'Sales' ? 'selected' : '' }}>SALES</option>
                     <option value="Marketing" {{ request('filter_divisi') == 'Marketing' ? 'selected' : '' }}>MARKETING</option>
-                    <option value="HRD" {{ request('filter_divisi') == 'HRD' ? 'selected' : '' }}>HRD</option>
-                    <option value="Finance" {{ request('filter_divisi') == 'Finance' ? 'selected' : '' }}>FINANCE</option>
                 </select>
                 
                 <button type="submit" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-black tracking-wider transition uppercase shrink-0 shadow-sm">
                     FILTER
                 </button>
                 
-                @if(request('filter_divisi'))
+                @if(request('filter_divisi_id'))
                     <a href="{{ route('karyawan.index') }}" class="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold transition shrink-0">
                         RESET
                     </a>
@@ -82,16 +79,17 @@
                             </div>
                         </td>
                         <td class="px-6 py-4 text-slate-500 font-medium">{{ $k->email }}</td>
-                        <td class="px-6 py-4">
-                            @if($k->divisi)
-                                <span class="inline-flex items-center px-2.5 py-1 bg-blue-50 border border-blue-100 text-blue-700 font-black rounded-md uppercase tracking-wide text-[10px]">
-                                    {{ $k->divisi }}
-                                </span>
-                            @else
-                                <span class="inline-flex items-center px-2.5 py-1 bg-slate-50 border border-slate-200 text-slate-400 font-bold rounded-md uppercase tracking-wide text-[10px]">
-                                    Belum Set
-                                </span>
-                            @endif
+                            <td class="px-6 py-4">
+                                @if($k->divisi)
+                                    <span class="inline-flex items-center px-2.5 py-1 bg-blue-50 border border-blue-100 text-blue-700 font-black rounded-md uppercase tracking-wide text-[10px]">
+                                        {{ strtoupper($k->divisi->nama_divisi) }}
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2.5 py-1 bg-slate-50 border border-slate-200 text-slate-400 font-bold rounded-md uppercase tracking-wide text-[10px]">
+                                        Belum Set
+                                    </span>
+                                @endif
+                            </td>
                         </td>
                         <td class="px-6 py-4 text-slate-400 font-bold text-center">
                             {{ $k->created_at ? $k->created_at->format('d M Y') : '-' }}

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Divisi;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -14,11 +15,14 @@ class KaryawanController extends Controller
     public function index(Request $request)
     {
         // 1. Buat query dasar mengambil user ber-role karyawan
-        $query = User::where('role', 'karyawan');
+        $query = User::with('divisi')
+             ->where('role', 'karyawan');
 
         // 2. Jika admin memilih filter divisi tertentu, saring datanya
         if ($request->has('filter_divisi') && $request->filter_divisi != '') {
-            $query->where('divisi', $request->filter_divisi);
+            $query->whereHas('divisi', function ($q) use ($request) {
+                 $q->where('nama_divisi', $request->filter_divisi);
+            });
         }
 
         // 3. Urutkan dari yang terbaru dan batasi per halaman
@@ -33,33 +37,36 @@ class KaryawanController extends Controller
      */
     public function create()
     {
-        return view('pages.karyawan.create');
+        $divisis = Divisi::all();
+
+        return view('pages.karyawan.create', compact('divisis'));
     }
 
-    /**
-     * Menyimpan data karyawan baru ke database
-     */
     public function store(Request $request)
     {
         // 1. Validasi inputan form
         $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
-            'divisi'   => 'required|string',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|min:8',
+            'divisi_id' => 'required|exists:divisis,id',
+            'jenis_kelamin' => 'required',
+            'status_pernikahan' => 'required',
         ]);
 
         // 2. Insert data ke tabel users
         User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => bcrypt($request->password), 
-            'role'     => 'karyawan',                 
-            'divisi'   => $request->divisi,          
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+            'role' => 'karyawan',
+            'divisi_id' => $request->divisi_id,
+            'jenis_kelamin' => $request->jenis_kelamin,
+            'status_pernikahan' => $request->status_pernikahan,
         ]);
 
-        // 3. Redirect kembali ke halaman utama manajemen karyawan dengan pesan sukses
-        return redirect()->route('karyawan.index')->with('success', 'Karyawan baru berhasil didaftarkan!');
+        // 3. Redirect kembali ke halaman utama
+        return redirect()->route('karyawan.index')->with('success', 'Karyawan baru berhasil didaftarkan!'); 
     }
 
     /**
