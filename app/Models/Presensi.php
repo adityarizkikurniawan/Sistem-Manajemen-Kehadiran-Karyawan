@@ -11,14 +11,22 @@ class Presensi extends Model
 
     protected $table = 'presensi'; 
 
-    protected $fillable = [
-        'user_id',
-        'tanggal',    
-        'jam_masuk',
-        'jam_pulang', 
-        'location',
-        'keterangan' 
-    ];
+        protected $fillable = [
+
+            'user_id',
+            'divisi_id',
+            'tanggal',
+            'jam_masuk',
+            'jam_pulang',
+            'jam_masuk_seharusnya',
+            'jam_pulang_seharusnya',
+            'location',
+            'keterangan',
+            'no_hp',
+            'latitude',
+            'longitude',
+            'jarak',
+        ];
 
     public function user()
     {

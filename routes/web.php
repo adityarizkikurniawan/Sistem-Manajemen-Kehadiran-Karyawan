@@ -30,6 +30,7 @@ Route::prefix('pages')->group(function () {
         Route::get('/jadwal', [JadwalController::class, 'index'])->name('jadwal');
 
         Route::get('/profil', [ProfilController::class, 'index'])->name('profil.index');
+        Route::put('/profil/password', [ProfilController::class, 'updatePassword'])->name('profil.password');
         Route::get('/admin/profil-karyawan/{id}', [ProfilController::class, 'show'])->name('admin.user.profile');
 
         // Izin
@@ -41,15 +42,19 @@ Route::prefix('pages')->group(function () {
         Route::get('/presensi/rekap', [PresensiController::class, 'rekap'])->name('presensi.rekap');
         Route::get('/profil/export-pdf', [PresensiController::class, 'exportPdf'])->name('profil.export_pdf');
         Route::post('/presensi/store', [PresensiController::class, 'store'])->name('presensi.store');
-        Route::put('/presensi/update/{id}', [PresensiController::class, 'updateStatus'])->name('presensi.update');
+        Route::put('/presensi/update/{id}', [PresensiController::class, 'update'])->name('presensi.update');
 
         // Manajemen Karyawan 
         Route::get('/karyawan', [KaryawanController::class, 'index'])->name('karyawan.index');
         Route::get('/karyawan/tambah', [KaryawanController::class, 'create'])->name('karyawan.create');
         Route::post('/karyawan/simpan', [KaryawanController::class, 'store'])->name('karyawan.store');
+        Route::get('/karyawan/detail/{id}', [KaryawanController::class, 'show'])->name('karyawan.show');
         
         Route::get('/karyawan/export', [KaryawanController::class, 'export'])->name('karyawan.export');
         Route::delete('/karyawan/{id}', [KaryawanController::class, 'destroy'])->name('karyawan.destroy');
+
+        Route::post('/jadwal/set-ketua', [JadwalController::class, 'setKetua'])->name('jadwal.setKetua');
+        Route::get('/anggota-divisi', [App\Http\Controllers\KaryawanController::class, 'anggotaDivisi'])->name('anggota.divisi');
 
         // Logout
         Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
@@ -66,6 +71,8 @@ Route::prefix('pages')->group(function () {
         
         Route::middleware(['auth', 'role:admin'])->group(function () {
             Route::put('/admin/divisi/{id}', [DivisiController::class, 'update'])->name('divisi.update');
+            Route::get('/karyawan/edit/{id}', [KaryawanController::class, 'edit'])->name('karyawan.EditKaryawan');
+            Route::put('/karyawan/update/{id}', [KaryawanController::class, 'update'])->name('karyawan.update');
         });
     });
 });

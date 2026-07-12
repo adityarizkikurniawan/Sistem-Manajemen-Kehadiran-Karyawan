@@ -23,8 +23,11 @@ class User extends Authenticatable
         'password',
         'role',
         'divisi_id',
+        'no_hp',
         'jenis_kelamin',  
         'status_pernikahan',
+        'jatah_cuti',
+        'sisa_cuti',
     ];
 
     /**

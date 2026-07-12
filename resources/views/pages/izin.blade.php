@@ -46,14 +46,16 @@
                     <div class="p-4 bg-white/5 rounded-2xl border border-white/5">
                         <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Sisa Cuti Saat Ini
                         </p>
-                        <h4 class="text-3xl font-black text-white mt-1">12 <span
-                                class="text-xs font-medium text-slate-500">Hari</span></h4>
+                        <h4 class="text-3xl font-black text-white mt-1">
+                            {{ $user->sisa_cuti }}
+                            <span class="text-xs font-medium text-slate-500">Hari</span>
+                        </h4>
                     </div>
 
                     <div class="grid grid-cols-1 gap-3 text-[11px]">
                         <div class="flex justify-between py-2 border-b border-white/5">
                             <span class="text-slate-400">Cuti Tahunan</span>
-                            <span class="text-white font-bold">12 Hari</span>
+                            <span class="text-white font-bold">{{ $user->sisa_cuti }} Hari</span>
                         </div>
                         <div class="flex justify-between py-2 border-b border-white/5">
                             <span class="text-slate-400">Cuti Duka</span>
@@ -103,45 +105,71 @@
                     @endif
 
                     <form action="{{ route('izin.store') }}" method="POST" enctype="multipart/form-data"
-                        class="space-y-4">
+                        class="space-y-5">
                         @csrf
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Mulai</label>
-                                <input type="date" name="tanggal_mulai" style="color-scheme: dark;"
-                                    class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none"
-                                    required>
-                            </div>
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Selesai</label>
-                                <input type="date" name="tanggal_selesai" style="color-scheme: dark;"
-                                    class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none"
-                                    required>
-                            </div>
-                        </div>
 
+                        {{-- Kategori --}}
                         <div class="space-y-1">
-                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Kategori Izin</label>
-                            <select id="kategoriSelect" name="kategori"
-                                class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none appearance-none cursor-pointer"
+                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">
+                                Kategori Izin
+                            </label>
+
+                            <select name="kategori" id="kategori"
+                                class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none"
                                 required>
+                                <option value="">-- Pilih Kategori --</option>
                                 <option value="Sakit">Sakit</option>
-                                <option value="Izin">Izin (Keperluan Keluarga)</option>
                                 <option value="Cuti Tahunan">Cuti Tahunan</option>
                                 <option value="Cuti Duka">Cuti Duka</option>
-                                <option value="Cuti Melahirkan">Cuti Melahirkan</option>
+                                <option value="Cuti Khusus">Cuti Khusus</option>
+
+                                @if($user->jenis_kelamin == 'Perempuan' && $user->status_pernikahan == 'Menikah')
+                                <option value="Cuti Melahirkan">
+                                    Cuti Melahirkan
+                                </option>
+                                @endif
                             </select>
                         </div>
 
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Alasan</label>
-                            <textarea name="alasan"
-                                class="w-full bg-slate-950 border border-white/10 rounded-xl p-4 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none placeholder:text-slate-700"
-                                rows="2" placeholder="Tulis alasan..." required></textarea>
+                        {{-- Tanggal --}}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">
+                                    Mulai
+                                </label>
+                                <input type="date" id="tanggal_mulai" name="tanggal_mulai" style="color-scheme: dark;"
+                                    class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none"
+                                    required>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">
+                                    Selesai
+                                </label>
+
+                                <input type="date" id="tanggal_selesai" name="tanggal_selesai"
+                                    style="color-scheme: dark;"
+                                    class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none"
+                                    required>
+                            </div>
                         </div>
 
-                        <div class="flex flex-col sm:flex-row items-center gap-4 pt-2">
-                            <div class="flex-1 w-full">
+                        {{-- Alasan --}}
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">
+                                Alasan
+                            </label>
+
+                            <textarea name="alasan" rows="3" placeholder="Tulis alasan..."
+                                class="w-full bg-slate-950 border border-white/10 rounded-xl p-4 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none placeholder:text-slate-700"
+                                required></textarea>
+                        </div>
+
+                        {{-- Upload + Submit --}}
+                        <div class="flex flex-col sm:flex-row gap-4 pt-2">
+
+                            <div class="flex-1">
                                 <input type="file" name="image" class="hidden" id="fileInput">
                                 <label for="fileInput"
                                     class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[10px] text-slate-400 flex items-center justify-center gap-2 cursor-pointer hover:bg-white/10 transition">
@@ -361,26 +389,132 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const kategoriSelect = document.getElementById('kategoriSelect');
+        const kategori = document.getElementById('kategori');
         const previewImg = document.getElementById('categoryPreviewImg');
 
         const categoryImages = {
-            'Sakit': 'https://images.unsplash.com/photo-1584515933487-779824d29309?q=80&w=1000', // Foto medis/obat
-            'Izin': 'https://img.magnific.com/fotos-premium/mano-que-sostiene-papel-familia-cortado-superficie-tela_54178-2418.jpg', // Foto keluarga/rumah
-            'Cuti Tahunan': 'https://imagedelivery.net/2MtOYVTKaiU0CCt-BLmtWw/c0c2c991-f11e-44d3-b503-9b8dfbed4800/w=2481', // Foto pantai/liburan
-            'Cuti Duka': 'https://awsimages.detik.net.id/visual/2021/02/26/ilustrasi-duka-cita-foto-istockphotorealpeoplegroup_169.png?w=650&q=80' // Foto suasana tenang/indoor
+            'Sakit': 'https://images.unsplash.com/photo-1584515933487-779824d29309?q=80&w=1000',
+            'Cuti Khusus': 'https://img.magnific.com/fotos-premium/mano-que-sostiene-papel-familia-cortado-superficie-tela_54178-2418.jpg',
+            'Cuti Tahunan': 'https://imagedelivery.net/2MtOYVTKaiU0CCt-BLmtWw/c0c2c991-f11e-44d3-b503-9b8dfbed4800/w=2481',
+            'Cuti Duka': 'https://awsimages.detik.net.id/visual/2021/02/26/ilustrasi-duka-cita-foto-istockphotorealpeoplegroup_169.png?w=650&q=80',
+            'Cuti Melahirkan': 'https://png.pngtree.com/element_our/png/20181213/deliverytimebabybirthchild-line-icon--vector-isolated-il-png_267883.jpg'
         };
 
-        kategoriSelect.addEventListener('change', function() {
+        kategori.addEventListener('change', function() {
+
             const selected = this.value;
 
             previewImg.style.opacity = '0';
 
             setTimeout(() => {
-                previewImg.src = categoryImages[selected] || categoryImages['Izin'];
+
+                previewImg.src = categoryImages[selected] || categoryImages['Sakit'];
 
                 previewImg.style.opacity = '1';
+
             }, 300);
+
         });
+
+        const mulai = document.getElementById('tanggal_mulai');
+        const selesai = document.getElementById('tanggal_selesai');
+
+        const sisaCuti = {{ $user->sisa_cuti }};
+
+        kategori.addEventListener('change', function () {
+
+            selesai.value = '';
+
+            selesai.readOnly = false;
+
+            if (mulai.value) {
+                aturTanggal();
+            }
+        });
+
+        mulai.addEventListener('change', function(){
+            aturTanggal();
+        });
+
+        const aturanKategori = {
+            "Sakit": {
+                allowPast: true,
+                readonly: false
+            },
+
+            "Cuti Tahunan": {
+                hari: sisaCuti,
+                readonly: false,
+                allowPast: false
+            },
+
+            "Cuti Duka": {
+                hari: 2,
+                readonly: true,
+                allowPast: false
+            },
+
+            "Cuti Khusus": {
+                hari: 4,
+                readonly: true,
+                allowPast: false
+            },
+
+            "Cuti Melahirkan": {
+                bulan: 3,
+                readonly: true,
+                allowPast: false
+            }
+        };
+
+        function aturTanggal() {
+
+            if (!mulai.value) return;
+            let start = new Date(mulai.value);
+            let end = new Date(start);
+            selesai.readOnly = false;
+
+            switch (kategori.value) {
+                case 'Sakit':
+                    selesai.value = '';
+                    selesai.readOnly = false;
+                    break;
+
+                case 'Cuti Tahunan':
+                    end.setDate(end.getDate() + (sisaCuti - 1));
+                    selesai.value = formatTanggal(end);
+                    selesai.readOnly = false;
+                    break;
+
+                case 'Cuti Duka':
+                    end.setDate(end.getDate() + 1);
+                    selesai.value = formatTanggal(end);
+                    selesai.readOnly = true;
+                    break;
+
+                case 'Cuti Khusus':
+                    end.setDate(end.getDate() + 3);
+                    selesai.value = formatTanggal(end);
+                    selesai.readOnly = true;
+                    break;
+
+                case 'Cuti Melahirkan':
+                    end.setMonth(end.getMonth() + 3);
+                    end.setDate(end.getDate() - 1);
+                    selesai.value = formatTanggal(end);
+                    selesai.readOnly = true;
+                    break;
+            }
+        }
+
+        function formatTanggal(date) {
+
+            let y = date.getFullYear();
+            let m = ('0' + (date.getMonth() + 1)).slice(-2);
+            let d = ('0' + date.getDate()).slice(-2);
+
+            return `${y}-${m}-${d}`;
+        }
+
     });
     </script>

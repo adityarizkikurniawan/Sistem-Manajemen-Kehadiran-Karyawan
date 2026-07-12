@@ -18,9 +18,7 @@
 
             <div class="my-auto py-12 space-y-8">
                 <div class="space-y-1">
-                    <h1 class="text-5xl md:text-6xl font-black text-white tracking-tighter bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
-                        14.26.02
-                    </h1>
+                    <h2 class="text-xl font-mono font-bold text-blue-500" id="clock">00:00:00</h2>
                     <p class="text-sm md:text-base text-slate-400 font-medium tracking-wide">
                         {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}
                     </p>
@@ -65,6 +63,49 @@
         </div>
 
     </div>
+    <script>
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('clock').textContent = now.toLocaleTimeString('id-ID');
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
 
+    function getLocation() {
+        const status = document.getElementById('statusLokasi');
+        const locationInput = document.getElementById('locationInput');
+        const btn = document.getElementById('btnAbsen');
+        const btnText = document.getElementById('btnText');
+
+        if (!navigator.geolocation) {
+            status.textContent = "Browser tidak mendukung GPS";
+            return;
+        }
+
+        btn.disabled = true;
+        btnText.textContent = "MENCARI GPS...";
+        status.textContent = "Menunggu koordinat... ⏳";
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const long = position.coords.longitude;
+                locationInput.value = lat + "," + long;
+                status.textContent = "Lokasi Terkunci! ✅";
+                document.getElementById('formAbsen').submit();
+            },
+            (error) => {
+                btn.disabled = false;
+                btnText.textContent = "CHECK IN";
+                status.textContent = "Gagal: Berikan izin lokasi!";
+                alert("Izin lokasi diperlukan untuk absen.");
+            }, {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    }
+    </script>
 </body>
 </html>

@@ -3,47 +3,33 @@
 @section('content')
 <div class="space-y-6 pb-2">
 
-    <div class="grid grid-cols-1 {{ auth()->user()->role == 'admin' ? 'lg:grid-cols-2' : '' }} gap-6">
+    <<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        <div
-            class="bg-gradient-to-r from-slate-900 to-slate-700 p-6 rounded-3xl shadow-2xl flex flex-col justify-center">
-            @if($divisi)
-            <span class="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em]">Division Leader</span>
-            <h2 class="text-xl font-extrabold text-white mt-1">{{ $divisi->nama_divisi }}</h2>
-            <p class="text-sm text-gray-300 mt-2 flex items-center gap-2">
-                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                {{ $divisi->ketua->name ?? 'Belum ada ketua' }}
+
+    @if($divisi)
+    <div class="bg-gradient-to-r from-slate-900 to-slate-700 rounded-3xl p-6 shadow-xl min-h-[250px]">
+        <span class="text-[10px] uppercase tracking-[0.25em] text-blue-500 font-bold">
+            Division Leader
+        </span>
+        <h2 class="text-2xl text-white font-bold mt-2">
+            {{ $divisi->nama_divisi }}
+        </h2>
+        @if($divisi->ketua)
+            <div class="mt-4">
+                <h3 class="text-xl text-white font-semibold">
+                    {{ $divisi->ketua->name }}
+                </h3>
+                <p class="text-slate-400">
+                     📞 {{ $divisi->ketua->no_hp }}
+                </p>
+            </div>
+        @else
+            <p class="text-slate-400 mt-4">
+                Belum ada ketua divisi.
             </p>
-            <p class="text-xs text-gray-400 font-mono mt-1">No HP: {{ $divisi->ketua->no_hp ?? '-' }}</p>
-            @else
-            <h2 class="text-white font-bold">Informasi Divisi</h2>
-            <p class="text-gray-400 text-sm">Anda belum terdaftar dalam divisi.</p>
-            @endif
-        </div>
-
-        @if(auth()->user()->role == 'admin')
-        <div class="bg-slate-800 border border-slate-700 p-6 rounded-3xl flex flex-col justify-center">
-            <h3 class="text-white font-bold mb-3 text-sm">Admin Control: Atur Ketua Divisi</h3>
-            @if($divisi)
-            <form action="{{ route('divisi.update', $divisi->id) }}" method="POST" class="flex gap-2">
-                @csrf @method('PUT')
-                <select name="ketua_id"
-                    class="flex-1 bg-slate-900 text-white text-sm rounded-xl p-2 border border-slate-700">
-                    @foreach($semuaKaryawan as $karyawan)
-                    <option value="{{ $karyawan->id }}" {{ $divisi->ketua_id == $karyawan->id ? 'selected' : '' }}>
-                        {{ $karyawan->name }}
-                    </option>
-                    @endforeach
-                </select>
-                <button type="submit"
-                    class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-sm font-bold">Update</button>
-            </form>
-            @else
-            <p class="text-red-400 text-xs">Pilih divisi di tabel divisi terlebih dahulu.</p>
-            @endif
-        </div>
         @endif
     </div>
+    @endif
 
     <div
         class="relative overflow-hidden rounded-3xl bg-slate-900 border border-slate-700 flex flex-col lg:flex-row min-h-[250px] shadow-2xl">
@@ -52,7 +38,7 @@
                 {{ $divisi->nama_divisi ?? '' }}</h2>
 
             @if(auth()->user()->role == 'admin' && $divisi)
-            <form action="{{ route('jadwal.update-kerja', $divisi->id) }}" method="POST" class="pt-4 flex gap-4">
+            <form action="{{ route('jadwal.update', $divisi->id) }}" method="POST" class="pt-4 flex gap-4">
                 @csrf @method('PUT')
                 <input type="time" name="jam_masuk_kerja" value="{{ $divisi->jam_masuk_kerja ?? '08:00' }}" ...>
                 <input type="time" name="jam_pulang_kerja" value="{{ $divisi->jam_pulang_kerja ?? '17:00' }}" ...>
@@ -75,7 +61,7 @@
 
     @if(auth()->user()->role == 'admin')
 
-    <div class="mt-6 bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-xl">
+    <div class="bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-xl min-h-[250px]">
 
         <h3 class="text-white text-lg font-bold mb-4">
             Jadwal Seluruh Divisi
@@ -152,6 +138,64 @@
 
 </div>
 
+@if(auth()->user()->role == 'admin')
+
+<div class="bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-xl">
+
+    <h3 class="text-xl font-bold text-white mb-6">
+        Admin Control : Ketua Divisi
+    </h3>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+        @foreach($divisis as $divisi)
+
+        <form action="{{ route('jadwal.setKetua') }}" method="POST"
+              class="bg-slate-800 rounded-2xl p-5 border border-slate-700">
+
+            @csrf
+
+            <input type="hidden" name="divisi_id" value="{{ $divisi->id }}">
+
+            <h4 class="text-white font-bold mb-3">
+                {{ $divisi->nama_divisi }}
+            </h4>
+
+            <select
+                name="ketua_id"
+                class="w-full rounded-xl bg-slate-700 border border-slate-600 text-white p-3 mb-3">
+
+                <option value="">-- Pilih Ketua Divisi --</option>
+
+                @foreach($karyawan->where('divisi_id',$divisi->id) as $user)
+
+                <option value="{{ $user->id }}"
+                    {{ $divisi->ketua_id == $user->id ? 'selected' : '' }}>
+
+                    {{ $user->name }}
+
+                </option>
+
+                @endforeach
+
+            </select>
+
+            <button
+                class="w-full bg-blue-600 hover:bg-blue-500 rounded-xl py-2 text-white font-bold">
+
+                Simpan Ketua
+
+            </button>
+
+        </form>
+
+        @endforeach
+
+    </div>
+
+</div>
+
+@endif
 
 <div class="bg-gradient-to-r from-slate-900 to-slate-800 border border-white/5 p-6 rounded-3xl shadow-2xl">
     <div class="mb-6">

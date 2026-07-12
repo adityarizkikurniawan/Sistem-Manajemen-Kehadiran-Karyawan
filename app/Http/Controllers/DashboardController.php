@@ -12,15 +12,51 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
+    private function hitungHariKerja($bulan, $tahun)
+    {
+        $jumlahHari = Carbon::create($tahun, $bulan)->daysInMonth;
+
+        $hariKerja = 0;
+
+        for ($i = 1; $i <= $jumlahHari; $i++) {
+
+            $tanggal = Carbon::create($tahun, $bulan, $i);
+
+            // Senin - Jumat
+            if (!$tanggal->isWeekend()) {
+                $hariKerja++;
+            }
+        }
+
+        return $hariKerja;
+    }
+
     public function index(Request $request)
     {
         $user = Auth::user();
+
+        $isKetua = false;
+        $totalAnggotaDivisi = 0;
+
+        if ($user->role == 'karyawan' && $user->divisi_id) {
+
+            $divisiUser = Divisi::find($user->divisi_id);
+
+            if ($divisiUser && $divisiUser->ketua_id == $user->id) {
+
+                $isKetua = true;
+
+                $totalAnggotaDivisi = User::where('divisi_id', $user->divisi_id)
+                    ->where('role', 'karyawan')
+                    ->count();
+            }
+        }
+
         $today = Carbon::today();   
         $bulanSekarang = Carbon::now()->month;
         $tahunSekarang = Carbon::now()->year;
 
-        // Batas toleransi jam masuk terlambat
-        $jamMasukMaksimal = '08:00:00'; 
+        $user = Auth::user();
 
         if ($user->role == 'admin') {
             // --- DASHBOARD ADMIN ---
@@ -33,20 +69,70 @@ class DashboardController extends Controller
                                     ->whereYear('tanggal', $tahunSekarang);
 
             // Filter berdasarkan divisi
-            if ($request->has('filter_divisi') && $request->filter_divisi != '') {
-                $queryPresensi->whereHas('user', function($q) use ($request) {
-                    $q->where('divisi', $request->filter_divisi);
+            if ($request->filled('filter_divisi')) {
+                $queryPresensi->whereHas('user', function ($q) use ($request) {
+                    $q->where('divisi_id', $request->filter_divisi);
                 });
             }
 
             $allDataBulanIni = $queryPresensi->get();
 
             // Hitung data untuk 3 Card & Chart
-            $total_hadir = $allDataBulanIni->where('keterangan', 'Hadir')->count();
-            $terlambat   = $allDataBulanIni->where('keterangan', 'Hadir')->where('jam_masuk', '>', $jamMasukMaksimal)->count();
-            $izin        = $allDataBulanIni->where('keterangan', 'Izin')->count();
-            $sakit       = $allDataBulanIni->where('keterangan', 'Sakit')->count();
-            $alpa        = $allDataBulanIni->where('keterangan', 'Alpa')->count();
+            $total_hadir = $allDataBulanIni
+                ->where('keterangan', 'Hadir')
+                ->count();
+
+            $terlambat = $allDataBulanIni
+                ->where('keterangan', 'Terlambat')
+                ->count();
+            
+            $queryPermission = Permission::where('status', 'Disetujui')
+                ->whereMonth('tanggal_mulai', $bulanSekarang)
+                ->whereYear('tanggal_mulai', $tahunSekarang);
+
+            if ($request->filled('filter_divisi')) {
+                $queryPermission->whereHas('user', function ($q) use ($request) {
+                    $q->where('divisi_id', $request->filter_divisi);
+                });
+            }
+
+            $permissionBulanIni = $queryPermission->get();
+
+
+            $izin = $permissionBulanIni
+                ->where('kategori', 'Izin')
+                ->count();
+
+            $sakit = $permissionBulanIni
+                ->where('kategori', 'Sakit')
+                ->count();
+
+            // Total hari kerja bulan ini
+            $hariKerja = $this->hitungHariKerja($bulanSekarang, $tahunSekarang);
+
+            // Jumlah karyawan
+            $totalKaryawan = User::where('role', 'karyawan');
+
+            if ($request->filled('filter_divisi')) {
+                $totalKaryawan->where('divisi_id', $request->filter_divisi);
+            }
+
+            $totalKaryawan = $totalKaryawan->count();
+
+            // Total kesempatan hadir
+            $totalHariKerjaSemua = $hariKerja * $totalKaryawan;
+
+            // Hitung alpa otomatis
+            $alpa = max(
+                0,
+                $totalHariKerjaSemua
+                - (
+                    $total_hadir
+                    + $terlambat
+                    + $izin
+                    + $sakit
+                )
+            );
 
             $card_total_hadir = $total_hadir + $terlambat;
             $total_tidak_masuk = $izin + $sakit + $alpa;
@@ -72,6 +158,9 @@ class DashboardController extends Controller
 
         } else {
             // --- DASHBOARD KARYAWAN  ---
+
+            $divisi = Divisi::find($user->divisi_id);
+            $jamMasukMaksimal = $divisi->jam_masuk_kerja;
             
             // Ambil data presensi karyawan
             $myDataBulanIni = Presensi::where('user_id', $user->id)
@@ -79,12 +168,43 @@ class DashboardController extends Controller
                                     ->whereYear('tanggal', $tahunSekarang)
                                     ->get();
 
-            $total_hadir = $myDataBulanIni->where('keterangan', 'Hadir')->where('jam_masuk', '<=', $jamMasukMaksimal)->count();
-            $terlambat   = $myDataBulanIni->where('keterangan', 'Hadir')->where('jam_masuk', '>', $jamMasukMaksimal)->count();
-            $izin        = $myDataBulanIni->where('keterangan', 'Izin')->count();
-            $sakit       = $myDataBulanIni->where('keterangan', 'Sakit')->count();
-            $alpa        = $myDataBulanIni->where('keterangan', 'Alpa')->count();
+            $total_hadir = $myDataBulanIni
+                ->where('keterangan', 'Hadir')
+                ->count();
 
+            $terlambat = $myDataBulanIni
+                ->where('keterangan', 'Terlambat')
+                ->count();
+
+            // Izin & sakit diambil dari tabel permission
+            $permissionSaya = Permission::where('user_id', $user->id)
+                ->where('status', 'Disetujui')
+                ->whereMonth('tanggal_mulai', $bulanSekarang)
+                ->whereYear('tanggal_mulai', $tahunSekarang)
+                ->get();
+
+            $izin = $permissionSaya
+                ->where('kategori', 'Izin')
+                ->count();
+
+            $sakit = $permissionSaya
+                ->where('kategori', 'Sakit')
+                ->count();
+
+            // Hari kerja bulan ini
+            $hariKerja = $this->hitungHariKerja($bulanSekarang, $tahunSekarang);
+
+            // Hitung alpa otomatis
+            $alpa = max(
+                0,
+                $hariKerja
+                - (
+                    $total_hadir
+                    + $terlambat
+                    + $izin
+                    + $sakit
+                )
+            );
             // Hitung total 3 chart
             $card_total_hadir = $total_hadir + $terlambat;
             $total_tidak_masuk = $izin + $sakit + $alpa;
@@ -97,7 +217,10 @@ class DashboardController extends Controller
                                             ->whereYear('tanggal', $tahunSekarang)
                                             ->latest('tanggal')
                                             ->paginate(30),
-                'cek_absen_hari_ini' => Presensi::where('user_id', $user->id)->whereDate('tanggal', $today)->first(),
+                'cek_absen_hari_ini' => Presensi::where('user_id', $user->id)
+                ->whereDate('tanggal', $today)
+                ->latest('id')
+                ->first(),
                 
                 'card_total_hadir'   => $card_total_hadir,
                 'terlambat'          => $terlambat,
@@ -106,6 +229,8 @@ class DashboardController extends Controller
                 'izin'               => $izin,
                 'sakit'              => $sakit,
                 'alpa'               => $alpa,
+                'isKetua'            => $isKetua,
+                'totalAnggotaDivisi' => $totalAnggotaDivisi,
             ];
 
             return view('pages.dashboard', $data);

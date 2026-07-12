@@ -5,7 +5,6 @@
 @section('content')
 <div class="space-y-10">
 
-    <!-- 1. HERO SECTION: CHECK-IN/OUT (Gaya Login Split-Screen) -->
     <div
         class="relative overflow-hidden rounded-3xl bg-slate-900 border border-white/5 flex flex-col lg:flex-row min-h-[350px] shadow-2xl">
 
@@ -29,6 +28,9 @@
                 <form action="{{ route('presensi.store') }}" method="POST" id="formAbsen" class="flex-1">
                     @csrf
                     <input type="hidden" name="location" id="locationInput">
+                    <input type="hidden" name="latitude" id="latitudeInput">
+                    <input type="hidden" name="longitude" id="longitudeInput">
+                    <input type="hidden" name="jarak" id="jarakInput">
                     <button type="button" onclick="getLocation()" id="btnAbsen"
                         class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-2xl transition duration-300 flex items-center justify-center gap-3 shadow-lg shadow-blue-600/20 transform hover:-translate-y-1">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -40,20 +42,57 @@
                     </button>
                 </form>
                 @else
+                @if($cek_absen_hari_ini->keterangan == 'Terlambat')
+                <div
+                    class="flex-1 bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 font-bold py-4 rounded-2xl text-center flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 8v4l3 3" />
+                    </svg>
+                    HADIR TERLAMBAT
+                </div>
+                @else
+
                 <div
                     class="flex-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold py-4 rounded-2xl text-center flex items-center justify-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    <svg class="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M5 13l4 4L19 7" />
                     </svg>
                     SUDAH HADIR
                 </div>
                 @endif
+                @endif
 
+                @if($cek_absen_hari_ini && !$cek_absen_hari_ini->jam_pulang)
+                <form action="{{ route('presensi.update', $cek_absen_hari_ini->id) }}" method="POST" class="flex-1">
+                    @csrf
+                    @method('PUT')
+                    <button type="submit"
+                        class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-4 rounded-2xl transition duration-300">
+                        CHECK OUT
+                    </button>
+                </form>
+
+                @else
                 <button
                     class="flex-1 bg-white/5 text-white/20 font-bold py-4 rounded-2xl cursor-not-allowed border border-white/5"
                     disabled>
                     CHECK OUT
                 </button>
+                @endif
                 @endif
 
                 {{-- TOMBOL AKSES ADMIN (MUNCUL JIKA YANG LOGIN ADMIN) --}}
@@ -85,12 +124,19 @@
                     <p class="text-xl font-mono font-bold text-blue-500" id="clock">00:00:00</p>
                 </div>
 
-                {{-- Info GPS ini juga hanya relevan untuk karyawan yang mau absen --}}
                 @if(Auth::user()->role == 'karyawan')
                 <div class="h-8 w-[1px] bg-white/10"></div>
-                <p id="statusLokasi" class="text-[10px] text-slate-500 italic max-w-[150px]">
-                    GPS belum aktif. Klik tombol Check In untuk mendeteksi lokasi.
-                </p>
+                    <div class="space-y-1">
+                        <p id="statusLokasi"
+                        class="text-[11px] text-slate-400 font-semibold">
+                        GPS belum aktif.
+                        </p>
+
+                        <p id="jarakLokasi"
+                        class="text-[10px] text-slate-500">
+                        Jarak ke kantor : -
+                        </p>
+                    </div>
                 @endif
             </div>
         </div>
@@ -101,6 +147,35 @@
                 class="h-full w-full object-cover grayscale-[20%] brightness-75" alt="Office Background">
         </div>
     </div>
+
+    @if(isset($isKetua) && $isKetua)
+    <div class="rounded-3xl bg-gradient-to-r from-slate-800 to-slate-600 p-6 text-white shadow-xl">
+        <div class="flex justify-between items-center">
+            <div>
+
+                <span class="uppercase text-xs tracking-[0.25em] font-bold">
+                    👑 Dashboard Ketua Divisi
+                </span>
+
+                <h2 class="text-2xl font-bold mt-2">
+                    {{ auth()->user()->divisi->nama_divisi }}
+                </h2>
+
+                <p class="mt-2 text-blue-100">
+                    Total Anggota :
+                    <b>{{ $totalAnggotaDivisi }}</b>
+                </p>
+            </div>
+
+            <a href="{{ route('anggota.divisi') }}"
+                class="bg-white text-blue-700 font-bold px-6 py-3 rounded-xl hover:bg-blue-50 transition">
+
+                👥 Lihat Anggota
+
+            </a>
+        </div>
+    </div>
+    @endif
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         {{-- Card 1: Kehadiran --}}
@@ -134,11 +209,12 @@
             class="bg-white border border-slate-100 p-8 rounded-3xl shadow-sm hover:shadow-md hover:border-amber-500/30 transition duration-300 group">
             <p
                 class="text-[11px] font-black text-amber-600 uppercase tracking-[0.2em] group-hover:text-amber-500 transition">
-                Alpa / Tidak Hadir
+                Total Alpa Bulan Ini
             </p>
+
             <h3 class="text-4xl font-black text-slate-800 mt-4 tracking-tight">
-                {{ $persentase_tidak_masuk ?? 0 }}<span class="text-2xl text-amber-500 font-bold">%</span>
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Bulan Ini</span>
+                {{ $alpa ?? 0 }}
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Hari</span>
             </h3>
         </div>
     </div>
@@ -177,27 +253,31 @@
 
             <form action="{{ route('dashboard') }}" method="GET" class="flex flex-wrap items-center gap-2">
                 <select name="filter_divisi"
-                    class="text-xs font-bold text-slate-300 bg-slate-800/80 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 min-w-[200px]">
+                    class="min-w-[200px] rounded-xl border border-white/10 bg-slate-800/80 px-4 py-2.5 text-xs font-bold text-slate-300 focus:border-blue-500 focus:outline-none">
+
                     <option value="">-- Semua Divisi --</option>
-                    @foreach($daftar_divisi as $divisi)
-                    <option value="{{ $divisi }}" {{ request('filter_divisi') == $divisi ? 'selected' : '' }}>
-                        {{ strtoupper($divisi) }}
+
+                    @foreach ($daftar_divisi as $divisi)
+                    <option value="{{ $divisi->id }}" {{ request('filter_divisi') == $divisi->id ? 'selected' : '' }}>
+                        {{ strtoupper($divisi->nama_divisi) }}
                     </option>
                     @endforeach
+
                 </select>
 
                 <button type="submit"
-                    class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold tracking-wider transition shadow-lg shadow-blue-600/20 uppercase">
-                    FILTER
+                    class="rounded-xl bg-blue-600 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-500">
+                    Filter
                 </button>
 
-                @if(request('filter_divisi'))
+                @if (request()->filled('filter_divisi'))
                 <a href="{{ route('dashboard') }}"
-                    class="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-slate-200 rounded-xl text-xs font-bold transition uppercase tracking-wider">
-                    RESET
+                    class="rounded-xl bg-white/10 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-200 transition hover:bg-white/20">
+                    Reset
                 </a>
                 @endif
             </form>
+            
         </div>
         @endif
 
@@ -218,14 +298,15 @@
         {{-- 3. STRUKTUR DATA TABEL --}}
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
-                <thead class="bg-white/[0.01] text-[10px] text-slate-500 font-black uppercase tracking-[0.2em] border-b border-white/5">
+                <thead
+                    class="bg-white/[0.01] text-[10px] text-slate-500 font-black uppercase tracking-[0.2em] border-b border-white/5">
                     <tr>
                         {{-- KONDISI KHUSUS ADMIN: TAMBAH KOLOM NAMA & DIVISI --}}
                         @if(Auth::user()->role == 'admin')
                         <th class="px-8 py-5">Karyawan</th>
                         <th class="px-8 py-5">Divisi</th>
                         @endif
-                        
+
                         <th class="px-8 py-5">Tanggal</th>
                         <th class="px-8 py-5">Jam Masuk</th>
                         <th class="px-8 py-5">Jam Pulang</th>
@@ -236,7 +317,7 @@
                     @php $list = Auth::user()->role == 'admin' ? $recent_presences : $riwayat_absensi; @endphp
                     @forelse($list as $presensi)
                     <tr class="hover:bg-white/[0.02] transition group">
-                        
+
                         {{-- KONDISI KHUSUS ADMIN: TAMPILKAN DATA NAMA & DIVISI KARYAWAN --}}
                         @if(Auth::user()->role == 'admin')
                         <td class="px-8 py-6">
@@ -244,11 +325,12 @@
                                 {{ $presensi->user->name ?? 'User Terhapus' }}
                             </p>
                         </td>
-                            <td class="px-8 py-6">
-                                <span class="inline-flex items-center px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black rounded-md uppercase tracking-wider">
-                                    {{ strtoupper($presensi->user->divisi?->nama_divisi ?? 'Belum Set') }}
-                                </span>
-                            </td>
+                        <td class="px-8 py-6">
+                            <span
+                                class="inline-flex items-center px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black rounded-md uppercase tracking-wider">
+                                {{ strtoupper($presensi->user->divisi?->nama_divisi ?? 'Belum Set') }}
+                            </span>
+                        </td>
                         @endif
 
                         <td class="px-8 py-6">
@@ -257,7 +339,8 @@
                             </p>
                         </td>
                         <td class="px-8 py-6">
-                            <span class="px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-400 font-mono font-bold border border-blue-500/10">
+                            <span
+                                class="px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-400 font-mono font-bold border border-blue-500/10">
                                 {{ $presensi->jam_masuk ?? '--:--' }}
                             </span>
                         </td>
@@ -271,14 +354,16 @@
                                 MAPS VIEW
                             </a>
                             @else
-                            <span class="text-[10px] text-slate-600 font-bold uppercase italic tracking-tighter">No Signal</span>
+                            <span class="text-[10px] text-slate-600 font-bold uppercase italic tracking-tighter">No
+                                Signal</span>
                             @endif
                         </td>
                     </tr>
                     @empty
                     <tr>
                         <td colspan="{{ Auth::user()->role == 'admin' ? '6' : '4' }}" class="px-8 py-20 text-center">
-                            <p class="text-slate-600 font-bold uppercase tracking-widest text-xs">Belum ada aktivitas terekam</p>
+                            <p class="text-slate-600 font-bold uppercase tracking-widest text-xs">Belum ada aktivitas
+                                terekam</p>
                         </td>
                     </tr>
                     @endforelse
@@ -296,48 +381,135 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-function getLocation() {
-    const status = document.getElementById('statusLokasi');
-    const locationInput = document.getElementById('locationInput');
-    const btn = document.getElementById('btnAbsen');
-    const btnText = document.getElementById('btnText');
+const OFFICE_LAT = 1.118967354315375;
+const OFFICE_LNG = 104.04844545239081;
+const MAX_RADIUS = 100000;
 
-    if (!navigator.geolocation) {
-        status.textContent = "Browser tidak mendukung GPS";
+function deg2rad(deg){
+    return deg * (Math.PI/180);
+}
+
+function hitungJarak(lat1, lon1, lat2, lon2){
+
+    const R = 6371000;
+
+    const dLat = deg2rad(lat2-lat1);
+    const dLon = deg2rad(lon2-lon1);
+
+    const a =
+        Math.sin(dLat/2)*Math.sin(dLat/2)+
+        Math.cos(deg2rad(lat1))*
+        Math.cos(deg2rad(lat2))*
+        Math.sin(dLon/2)*
+        Math.sin(dLon/2);
+
+    const c = 2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+
+    return R*c;
+}
+
+function getLocation(){
+
+    const status=document.getElementById("statusLokasi");
+    const jarak=document.getElementById("jarakLokasi");
+
+    const btn=document.getElementById("btnAbsen");
+    const btnText=document.getElementById("btnText");
+
+    if(!navigator.geolocation){
+
+        status.innerHTML="❌ Browser tidak mendukung GPS";
+
         return;
     }
 
-    btn.disabled = true;
-    btnText.textContent = "MENCARI GPS...";
-    status.textContent = "Menunggu koordinat... ⏳";
+    btn.disabled=true;
+
+    btnText.innerHTML="MENCARI GPS...";
+
+    status.innerHTML="📍 Mengambil lokasi...";
 
     navigator.geolocation.getCurrentPosition(
-        (position) => {
-            const lat = position.coords.latitude;
-            const long = position.coords.longitude;
-            locationInput.value = lat + "," + long;
-            status.textContent = "Lokasi Terkunci! ✅";
-            document.getElementById('formAbsen').submit();
+
+        function(position){
+
+            const lat=position.coords.latitude;
+            const lng=position.coords.longitude;
+
+            const distance=hitungJarak(
+                lat,
+                lng,
+                OFFICE_LAT,
+                OFFICE_LNG
+            );
+
+            document.getElementById("latitudeInput").value=lat;
+            document.getElementById("longitudeInput").value=lng;
+            document.getElementById("locationInput").value=lat+","+lng;
+            document.getElementById("jarakInput").value=distance.toFixed(2);
+
+            jarak.innerHTML="Jarak : "+distance.toFixed(2)+" meter";
+
+            if(distance<=MAX_RADIUS){
+
+                status.innerHTML="🟢 Dalam Radius Kantor";
+
+                btnText.innerHTML="CHECK IN";
+
+                document.getElementById("formAbsen").submit();
+
+            }else{
+
+                status.innerHTML="🔴 Di luar radius kantor";
+
+                btn.disabled=false;
+
+                btnText.innerHTML="CHECK IN";
+
+                alert(
+                    "Anda berada "+
+                    distance.toFixed(2)+
+                    " meter dari kantor.\nRadius maksimal 20 meter."
+                );
+
+            }
+
         },
-        (error) => {
-            btn.disabled = false;
-            btnText.textContent = "CHECK IN";
-            status.textContent = "Gagal: Berikan izin lokasi!";
-            alert("Izin lokasi diperlukan untuk absen.");
-        }, {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 0
+
+        function(){
+
+            btn.disabled=false;
+
+            btnText.innerHTML="CHECK IN";
+
+            status.innerHTML="❌ GPS gagal didapat.";
+
+        },
+
+        {
+            enableHighAccuracy:true,
+            timeout:10000,
+            maximumAge:0
         }
+
     );
+
 }
 </script>
+
+<div style="display:none">
+{{ $total_hadir }}
+{{ $terlambat }}
+{{ $izin }}
+{{ $sakit }}
+{{ $alpa }}
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const ctx = document.getElementById('mainAttendanceChart').getContext('2d');
-    
+
     new Chart(ctx, {
         type: 'bar',
         data: {
@@ -351,12 +523,12 @@ document.addEventListener("DOMContentLoaded", function() {
                     {{ $sakit ?? 0 }},
                     {{ $alpa ?? 0 }}
                 ],
-                // WARNA BAR SINKRON (Sesuai image_4b22d3.png): Biru cerah semi-transparan dengan border solid
-                backgroundColor: 'rgba(59, 130, 246, 0.6)', 
-                borderColor: '#3b82f6', 
+
+                backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                borderColor: '#3b82f6',
                 borderWidth: 2,
                 hoverBackgroundColor: '#2563eb',
-                borderRadius: 6, 
+                borderRadius: 6,
                 barThickness: 35
             }]
         },
@@ -373,11 +545,11 @@ document.addEventListener("DOMContentLoaded", function() {
                     beginAtZero: true,
                     min: 0,
                     grid: {
-                        color: 'rgba(0, 0, 0, 0.05)', // Garis horizontal tipis transparan (Light Mode)
+                        color: 'rgba(0, 0, 0, 0.05)', 
                         drawBorder: false
                     },
                     ticks: {
-                        color: '#64748b', // Warna teks angka abu-abu gelap (slate-500) agar kontras di latar terang
+                        color: '#64748b',
                         font: {
                             family: 'sans-serif',
                             size: 11
@@ -390,7 +562,7 @@ document.addEventListener("DOMContentLoaded", function() {
                         display: false
                     },
                     ticks: {
-                        color: '#475569', // Warna teks label bawah abu-abu tegas (slate-600)
+                        color: '#475569', 
                         font: {
                             weight: 'bold',
                             size: 11

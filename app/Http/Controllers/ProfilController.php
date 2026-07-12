@@ -2,56 +2,63 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Presensi;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class ProfilController extends Controller
 {
+    /**
+     * Profil pengguna yang sedang login
+     */
     public function index()
     {
-        $user = auth()->user();
-        $presensi = Presensi::where('user_id', $user->id)->latest()->get();
+        $user = Auth::user()->load('divisi');
 
-        return view('pages.profil.index', compact('user', 'presensi'));
+        return view('pages.profile', compact('user'));
     }
 
+    /**
+     * Detail profil karyawan (dipakai nanti dari Data Karyawan)
+     */
     public function show($id)
     {
-        $user = User::findOrFail($id);
-        $presensi = Presensi::where('user_id', $id)->latest()->get();
         
-        return view('pages.profil.index', compact('user', 'presensi'));
+        return view('pages.profile', compact('user'));
+        $user = User::with('divisi')->findOrFail($id);
     }
 
-    public function export_pdf(Request $request)
+    /**
+     * Ubah password akun yang sedang login
+     */
+    public function updatePassword(Request $request)
     {
+        $request->validate([
+            'current_password' => 'required',
+            'password' => 'required|min:8|confirmed',
+        ],[
+            'current_password.required' => 'Password lama wajib diisi.',
+            'password.required' => 'Password baru wajib diisi.',
+            'password.min' => 'Password minimal 8 karakter.',
+            'password.confirmed' => 'Konfirmasi password tidak sesuai.',
+        ]);
+
         $user = Auth::user();
-        $bulanSekarang = \Carbon\Carbon::now()->month;
-        $tahunSekarang = \Carbon\Carbon::now()->year;
 
-        if ($user->role == 'admin') {
-            $query = Presensi::with('user')
-                ->whereMonth('tanggal', $bulanSekarang)
-                ->whereYear('tanggal', $tahunSekarang);
-
-            if ($request->has('filter_divisi') && $request->filter_divisi != '') {
-                $query->whereHas('user', function($q) use ($request) {
-                    $q->where('divisi', $request->filter_divisi);
-                });
-            }
-            $dataPresensi = $query->latest('tanggal')->get();
-        } else {
-            $dataPresensi = Presensi::where('user_id', $user->id)
-                ->whereMonth('tanggal', $bulanSekarang)
-                ->whereYear('tanggal', $tahunSekarang)
-                ->latest('tanggal')
-                ->get();
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->with('error', 'Password lama tidak sesuai.');
         }
 
-        // Kirim data ke view PDF di atas
-        $pdf = \Pdf::loadView('exports.kehadiran_bulan_ini_pdf', compact('dataPresensi', 'bulanSekarang', 'tahunSekarang'));
-        return $pdf->stream('Laporan_Presensi.pdf');
+        if (Hash::check($request->password, $user->password)) {
+            return back()->with('error', 'Password baru tidak boleh sama dengan password lama.');
+        }
+
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        return back()->with('success', 'Password berhasil diperbarui.');
     }
+
 }

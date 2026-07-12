@@ -20,19 +20,21 @@ class JadwalController extends Controller
         $divisis = Divisi::with('ketua')->orderBy('id')->get();
 
         // Semua karyawan
-        $semuaKaryawan = User::all();
+        $karyawan = User::where('role', 'karyawan')
+        ->orderBy('name')
+        ->get();
 
         // Hari libur
         $holidays = Holiday::orderBy('tanggal')->get();
 
         return view(
             'pages.jadwal',
-            compact(
-                'divisi',
-                'divisis',
-                'semuaKaryawan',
-                'holidays'
-            )
+                compact(
+                    'divisi',
+                    'divisis',
+                    'karyawan',
+                    'holidays'
+                )
         );
     }
 
@@ -53,4 +55,19 @@ class JadwalController extends Controller
         return back()->with('success', 'Jadwal berhasil diperbarui.');
     }
     
+    public function setKetua(Request $request)
+    {
+        $request->validate([
+            'divisi_id' => 'required|exists:divisis,id',
+            'ketua_id'  => 'nullable|exists:users,id',
+        ]);
+
+        $divisi = Divisi::findOrFail($request->divisi_id);
+
+        $divisi->update([
+            'ketua_id' => $request->ketua_id
+        ]);
+
+        return back()->with('success', 'Ketua divisi berhasil diperbarui.');
+    }
 }
